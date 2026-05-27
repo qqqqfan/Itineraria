@@ -1,0 +1,406 @@
+/* 明信片 demo 样式
+ *
+ * 调性：纸感、留白、深棕墨色、衬线字体。
+ * 不引用主产品的 styles.css —— demo 完全自闭包，方便随便改。
+ */
+
+/* ---------- 全局 ---------- */
+:root {
+  --pc-paper: #f4ede1;
+  --pc-paper-edge: #e6dcc7;
+  --pc-ink: #2a221c;
+  --pc-ink-soft: #6b5d4f;
+  --pc-ink-faint: #a89c89;
+  --pc-red: #a23a2a;
+  --pc-blue: #2a5fa6;
+  --pc-rule: #c9bfa9;
+  --pc-serif: "Cormorant Garamond", "Georgia", "Songti SC", serif;
+  --pc-mono:  "Courier Prime", "Courier New", ui-monospace, monospace;
+  --pc-sans:  "Inter", "Helvetica Neue", "PingFang SC", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--pc-sans);
+  color: var(--pc-ink);
+  background: #ddd2bd;
+  background-image:
+    radial-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
+    radial-gradient(rgba(0,0,0,0.03) 1px, transparent 1px);
+  background-size: 6px 6px, 11px 11px;
+  background-position: 0 0, 3px 3px;
+}
+
+.demo-shell {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 48px 24px 96px;
+}
+
+.demo-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(0,0,0,0.12);
+}
+.demo-title {
+  font-family: var(--pc-serif);
+  font-size: 22px;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+.demo-meta {
+  font-family: var(--pc-mono);
+  font-size: 11px;
+  color: rgba(0,0,0,0.55);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.demo-grid {
+  display: grid;
+  gap: 36px;
+  justify-items: center;
+}
+
+/* ---------- 一张明信片 ---------- */
+.pc {
+  width: 720px;
+  max-width: 100%;
+  aspect-ratio: 3 / 2;
+  background: var(--pc-paper);
+  position: relative;
+  padding: 22px 26px 18px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 12px;
+  /* 纸张外框 + 投影 */
+  box-shadow:
+    inset 0 0 0 1px var(--pc-paper-edge),
+    0 1px 0 rgba(0,0,0,0.05),
+    0 14px 30px -14px rgba(40,28,18,0.28),
+    0 4px 10px -4px rgba(40,28,18,0.18);
+  /* 纸纹噪点 */
+  background-image:
+    radial-gradient(rgba(120,90,40,0.05) 1px, transparent 1px),
+    radial-gradient(rgba(80,60,30,0.04) 1px, transparent 1px);
+  background-size: 4px 4px, 7px 7px;
+  background-position: 0 0, 2px 3px;
+  font-family: var(--pc-serif);
+  color: var(--pc-ink);
+  /* 让纸张稍微歪一点点，不要太多 */
+  transform: rotate(0deg);
+}
+.pc::before {
+  /* 中央分隔虚线（明信片背面感） */
+  content: "";
+  position: absolute;
+  top: 14%;
+  bottom: 14%;
+  left: 58%;
+  border-left: 1px dashed var(--pc-rule);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.pc--error {
+  font-family: var(--pc-mono);
+  padding: 24px;
+  color: #a23a2a;
+  background: #fff5f0;
+}
+
+/* ---------- header ---------- */
+.pc__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px solid var(--pc-rule);
+  padding-bottom: 8px;
+  font-family: var(--pc-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pc-ink-soft);
+}
+.pc__header-left,
+.pc__header-right {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pc__header-right { text-align: right; }
+.pc__header-place {
+  font-family: var(--pc-serif);
+  font-size: 16px;
+  letter-spacing: 0.03em;
+  color: var(--pc-ink);
+  text-transform: none;
+}
+.pc__header-date,
+.pc__header-day,
+.pc__header-coord {
+  font-size: 10.5px;
+}
+
+/* ---------- body 二栏 ---------- */
+.pc__body {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 14px;
+  min-height: 0;
+}
+.pc__left,
+.pc__right {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+.pc__right {
+  padding-left: 14px;
+  align-items: stretch;
+}
+
+/* ---------- HERO ---------- */
+.pc__hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
+}
+.pc__hero--typo {
+  align-items: flex-start;
+}
+.pc__hero-title {
+  font-family: var(--pc-serif);
+  font-weight: 600;
+  font-size: 76px;
+  line-height: 0.92;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--pc-ink);
+  /* 给标题一个细的描线 */
+  text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+}
+.pc__hero-sub {
+  margin: 8px 0 0;
+  font-family: var(--pc-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--pc-ink-soft);
+}
+.pc__hero-accent {
+  margin: 14px 0 0;
+  font-family: var(--pc-serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--pc-ink-soft);
+}
+.pc__hero--icon {
+  align-items: center;
+  text-align: center;
+}
+.pc__hero-icon {
+  width: 100%;
+  max-width: 360px;
+}
+.pc__hero-icon svg { width: 100%; height: auto; }
+.pc__hero-caption {
+  margin: 6px 0 0;
+  font-family: var(--pc-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  color: var(--pc-ink-soft);
+}
+
+/* ---------- map (left bottom) ---------- */
+.pc__map {
+  border-top: 1px dashed var(--pc-rule);
+  padding-top: 8px;
+}
+.pc__map-svg svg { width: 100%; height: auto; max-height: 96px; }
+.pc__map-caption {
+  margin: 2px 0 0;
+  font-family: var(--pc-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--pc-ink-soft);
+}
+
+/* ---------- STAMP ---------- */
+.pc__stamp {
+  align-self: flex-end;
+  width: 96px;
+  height: 96px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transform: rotate(-8deg);
+  opacity: 0.92;
+  margin: 4px 4px 0 auto;
+}
+.pc__stamp::after {
+  /* 双圈 */
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.pc__stamp--red   { color: var(--pc-red); }
+.pc__stamp--blue  { color: var(--pc-blue); }
+.pc__stamp--black { color: var(--pc-ink); }
+.pc__stamp-ring {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-family: var(--pc-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+.pc__stamp-verb {
+  font-size: 9px;
+  font-weight: 700;
+}
+.pc__stamp-place {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.pc__stamp-date {
+  font-size: 8.5px;
+  letter-spacing: 0.06em;
+  border-top: 1px solid currentColor;
+  padding-top: 1px;
+  margin-top: 1px;
+}
+
+/* ---------- WEATHER ---------- */
+.pc__weather {
+  border-top: 1px dashed var(--pc-rule);
+  padding-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pc__weather-temp {
+  font-family: var(--pc-serif);
+  font-size: 30px;
+  font-weight: 500;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.pc__weather-sep {
+  color: var(--pc-ink-faint);
+  font-weight: 300;
+}
+.pc__weather-meta {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--pc-mono);
+  font-size: 10px;
+  color: var(--pc-ink-soft);
+  letter-spacing: 0.1em;
+}
+
+/* ---------- TICKET ---------- */
+.pc__ticket {
+  border-top: 1px dashed var(--pc-rule);
+  padding-top: 8px;
+  font-family: var(--pc-mono);
+  font-size: 11px;
+  color: var(--pc-ink);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pc__ticket-row--top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--pc-ink-soft);
+}
+.pc__ticket-row--main {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: end;
+  gap: 6px;
+}
+.pc__ticket-od {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pc__ticket-od--right { text-align: right; }
+.pc__ticket-place {
+  font-family: var(--pc-serif);
+  font-size: 16px;
+  letter-spacing: 0.02em;
+}
+.pc__ticket-time {
+  font-family: var(--pc-mono);
+  font-size: 11px;
+  color: var(--pc-ink-soft);
+  letter-spacing: 0.1em;
+}
+.pc__ticket-arrow {
+  font-size: 9px;
+  color: var(--pc-ink-faint);
+  letter-spacing: -0.05em;
+  align-self: end;
+  padding-bottom: 4px;
+}
+.pc__ticket-note {
+  font-size: 10px;
+  color: var(--pc-ink-soft);
+  letter-spacing: 0.1em;
+  border-top: 1px dotted var(--pc-rule);
+  padding-top: 4px;
+}
+
+/* ---------- footer ---------- */
+.pc__footer {
+  border-top: 1px solid var(--pc-rule);
+  padding-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--pc-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pc-ink-faint);
+}
+.pc__footer-line {
+  flex: 1;
+  height: 1px;
+  background: var(--pc-rule);
+}
+
+/* ---------- 适配 ---------- */
+@media (max-width: 760px) {
+  .pc {
+    width: 100%;
+    aspect-ratio: auto;
+  }
+  .pc::before { display: none; }
+  .pc__body { grid-template-columns: 1fr; }
+  .pc__right { padding-left: 0; border-top: 1px dashed var(--pc-rule); padding-top: 12px; }
+  .pc__hero-title { font-size: 56px; }
+  .pc__stamp { align-self: flex-start; margin: 0; }
+}

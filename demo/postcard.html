@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TripStudio · Postcard demo</title>
+  <link rel="stylesheet" href="postcard/postcard.css" />
+  <!-- 衬线 + 等宽，离线可降级到本机字体 -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="demo-shell">
+    <header class="demo-header">
+      <h1 class="demo-title">Postcard · 视觉调性 demo</h1>
+      <span class="demo-meta">3 张样片 · grand tour 2026 · v0</span>
+    </header>
+    <main class="demo-grid" id="demo-grid"></main>
+  </div>
+  <script type="module">
+    import { MOCK_POSTCARDS } from "./postcard/mock-data.js";
+    import { renderPostcard } from "./postcard/renderer.js";
+    const host = document.getElementById("demo-grid");
+    MOCK_POSTCARDS.forEach((p) => host.appendChild(renderPostcard(p)));
+  </script>
+</body>
+</html>
