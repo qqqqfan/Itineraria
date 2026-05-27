@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>plan your tour studio</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="studio-shell">
+      <header class="topbar">
+        <div class="topbar__row">
+          <input
+            class="topbar__title-input"
+            type="text"
+            data-trip-field="title"
+            placeholder="给这场旅行起个名字…"
+            aria-label="旅行名称"
+          />
+          <nav class="mode-nav" aria-label="studio navigation">
+            <button class="mode-nav__button is-active" data-mode-button="form">表单</button>
+            <button class="mode-nav__button" data-mode-button="preview">预览</button>
+          </nav>
+          <div class="topbar__actions">
+            <button class="tiny-button" data-action="load-sample">示例</button>
+            <button class="tiny-button" data-action="reset-form">清空</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="studio-main">
+        <section class="mode-section is-active" data-mode-section="form">
+          <article class="panel panel--events">
+            <div class="panel__header panel__header--events">
+              <h2 class="panel__title">事件</h2>
+              <div class="panel__header-right">
+                <span class="event-status" id="event-status" aria-live="polite">共 0 张</span>
+                <button class="tiny-button" data-action="export-json" title="导出当前行程为 JSON 文件">📤 导出</button>
+                <button class="tiny-button" data-action="import-json" title="从 JSON 文件导入行程（会替换当前数据）">📥 导入</button>
+                <input type="file" id="import-json-input" accept="application/json,.json" hidden />
+              </div>
+            </div>
+            <div class="event-list" id="event-list"></div>
+            <button class="event-adder" data-action="add-event" aria-label="添加事件卡片">
+              <span class="event-adder__plus">+</span>
+            </button>
+          </article>
+        </section>
+
+        <section class="mode-section" data-mode-section="preview">
+          <article class="panel preview-panel">
+            <header class="preview-header">
+              <h2 class="preview-title" id="preview-trip-title">Preview</h2>
+              <div class="preview-tabs" data-tab-group="primary">
+                <button class="preview-tab is-active" data-tab="map">🗺️ 地图</button>
+                <button class="preview-tab" data-tab="list">📋 列表</button>
+              </div>
+              <div class="preview-tabs preview-tabs--secondary" data-tab-group="secondary">
+                <button class="preview-tab is-active" data-sub-tab="day">按天</button>
+                <button class="preview-tab" data-sub-tab="event">按事件</button>
+              </div>
+            </header>
+            <div class="preview-body">
+              <div class="preview-pane is-active" data-pane="map">
+                <div class="preview-map-wrap">
+                  <div class="preview-map" id="preview-map"></div>
+                  <div class="map-toolbar">
+                    <label class="map-toggle">
+                      <input type="checkbox" data-map-setting="hideEdgeTransport" />
+                      <span>隐藏头尾大交通</span>
+                    </label>
+                    <button class="tiny-button map-toolbar__reset" data-action="reset-zoom" title="重置视图到全部锚点">⤢ 重置视图</button>
+                  </div>
+                </div>
+                <div class="preview-axis" id="preview-axis"></div>
+              </div>
+              <div class="preview-pane" data-pane="list">
+                <div class="preview-list" id="preview-list"></div>
+              </div>
+            </div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <div class="location-modal" id="location-modal" aria-hidden="true">
+      <div class="location-modal__backdrop" data-action="close-location-modal"></div>
+      <div class="location-modal__panel" role="dialog" aria-label="选择地点">
+        <header class="location-modal__header">
+          <h3 class="location-modal__title" id="location-modal-title">选择地点</h3>
+          <button class="icon-button" data-action="close-location-modal" aria-label="关闭">✕</button>
+        </header>
+        <div class="location-modal__search">
+          <input
+            type="text"
+            id="location-search-input"
+            class="location-search-input"
+            placeholder="给地点起个名字；回车搜索 OSM"
+          />
+          <button class="tiny-button location-search-btn" data-action="run-location-search" title="按名字搜索 OSM（回车也行）">🔍 搜索</button>
+          <span class="location-search-spinner" id="location-search-spinner" hidden>搜索中…</span>
+        </div>
+        <p class="location-modal__hint">
+          搜不到？直接在地图上<strong>点击</strong>或<strong>拖动针</strong>手动打点，名字以输入框为准。
+        </p>
+        <div class="location-modal__body">
+          <div class="location-map" id="location-map"></div>
+          <div class="location-candidates" id="location-candidates">
+            <p class="location-candidates__empty">输入关键词开始搜索</p>
+          </div>
+        </div>
+        <footer class="location-modal__footer">
+          <span class="location-coord" id="location-coord">未锚定</span>
+          <div class="location-modal__actions">
+            <button class="tiny-button" data-action="clear-location">清空锚定</button>
+            <button class="primary-button" data-action="confirm-location">确认锚定</button>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+    <script type="module" src="./src/bootstrap.js"></script>
+  </body>
+</html>

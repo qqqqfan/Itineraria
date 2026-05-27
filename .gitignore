@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# IDE / 编辑器
+.vscode/
+.idea/
+*.swp
+*~
+
+# Node / 常见构建产物（v0.1 没用，预留）
+node_modules/
+dist/
+build/
+
+# 本地导出的 JSON / 临时数据
+*.local.json
+tripstudio-*.json
+
+# 本仓库历史遗留（v0.1 之前的设计/调试记录，留在本地不入库）
+PRD_v2.md
+codewiz/
