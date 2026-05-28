@@ -1,0 +1,157 @@
+/* 用户可见文字集中地。改文案先改这里，遵循 docs/voice.md。
+ *
+ * 命名空间：
+ *   common  —— 通用（保存、加载、确认、取消…）
+ *   trip    —— Trip 维度（library / 标题 / 切换）
+ *   event   —— 事件维度（卡片 / 状态摘要 / 添加…）
+ *   form    —— 表单字段标签 / placeholder
+ *   preview —— 预览模式
+ *   io      —— 导入 / 导出 / 示例 / 清空
+ *   geo     —— 地点 / 锚定 / OSM / OSRM
+ *   error   —— 错误兜底
+ */
+
+export const STR = {
+  common: {
+    save:     "保存",
+    saved:    "已自动保存",
+    saving:   "保存中…",
+    cancel:   "取消",
+    confirm:  "确认",
+    delete:   "删除",
+    edit:     "编辑",
+    more:     "更多",
+    close:    "关闭",
+    notSet:   "尚未保存",
+  },
+
+  brand: {
+    name: "TripStudio",
+  },
+
+  trip: {
+    libraryTitle:    "我的 Trip",
+    backToLibrary:   "← 我的 Trip",
+    backToLibraryTooltip: "返回 Trip 列表",
+    new:             "+ 新建 Trip",
+    titlePlaceholder: "Trip 名称",
+    titleAriaLabel:  "Trip 名称",
+    libraryEmpty:    "还没有 Trip — 点击右上「+ 新建 Trip」开始。",
+    untitled:        "未命名 Trip",
+    duplicate:       "复制",
+    duplicateTooltip: "复制为新 Trip",
+    deleteTooltip:   "删除此 Trip",
+    duplicated:      "已复制",
+    deleted:         "已删除",
+    confirmDelete:   (title) => `确认删除「${title}」？此操作不可撤销。`,
+    openFailed:      "打开失败：数据可能已损坏",
+    createFailed:    "新建失败",
+    duplicateFailed: "复制失败",
+    metaCount:       (n, when) => `${n} 个事件 · 更新于 ${when}`,
+  },
+
+  event: {
+    panelTitle:      "事件",
+    add:             "+ 添加事件",
+    addAriaLabel:    "添加事件",
+    addPlus:         "+",
+    countTotal:      (n) => `共 ${n} 个`,
+    issueMissingLocation:  (n) => `${n} 个缺地点`,
+    issueMissingTransport: (n) => `${n} 个缺交通方式`,
+    statusReady:     "✓ 全部就绪",
+    confirmDeleteOne: "确认删除这个事件？此操作不可撤销。",
+    expand:          "▾ 展开",
+    expandIncomplete: "▾ 展开（未填完）",
+    collapseTooltip: "收起卡片",
+    collapseDisabledTooltip: "必填项未完成，无法收起",
+    dragTooltip:     "拖动排序",
+    deleteTooltip:   "删除",
+    headerExpandTooltip: "点击折叠",
+    headerCollapseTooltip: "点击展开",
+    listDividerUndated: "以下未填日期，按拖动顺序排列",
+    emptyAxis:       "还没有事件，去表单添加",
+    onboardingTitle: "从一张事件卡片开始",
+    onboardingLead:  "把每一天要做的事拆成一张卡片。地图里点出地点，预览自动连起来。",
+    onboardingStep1: "<strong>添加事件</strong>：点下方 <span class=\"onboarding__plus\">+</span>，选类型（酒店 / 游览 / 餐饮 / 活动 / 交通）。",
+    onboardingStep2: "<strong>锚定地点</strong>：点「地点」按钮 → 输入名字 → 回车搜索 OSM；找不到就在地图上点击或拖针。",
+    onboardingStep3: "<strong>填日期可选</strong>：填了就按日期排序；不填就在底部按拖动顺序排列。",
+    onboardingCtaAdd:    "+ 添加第一个事件",
+    onboardingCtaSample: "加载示例",
+  },
+
+  form: {
+    nameLabel:  "名称",
+    namePlaceholderHotel:    "酒店名（锚定后自动填入）",
+    namePlaceholderFood:     "店名（锚定后自动填入）",
+    namePlaceholderActivity: "活动名（锚定后自动填入）",
+    namePlaceholderTour:     "景点 / 地点（锚定后自动填入）",
+    locationLabel:    "地点",
+    locationFromLabel: "出发地点",
+    locationToLabel:   "到达地点",
+    locationEmpty:    "点击搜索并锚定地点",
+    locationUnnamed:  "未命名地点",
+    transportModeLabel: "交通方式",
+    transportSelectPlaceholder: "请选择",
+    dateLabel:        "日期（选填）",
+    datePlaceholder:  "点击选择日期",
+    dateClear:        "清空",
+    tagsLabel:        "备注",
+    tagsHint:         "回车添加备注，比如 20:30、5 星海景、含早",
+    tagInputFirst:    "回车添加备注…",
+    tagInputMore:     "再加一条",
+    tagEditTooltip:   "点击编辑",
+  },
+
+  preview: {
+    titleFallback: "Preview",
+    tabMap:        "🗺️ 地图",
+    tabList:       "📋 列表",
+    subDay:        "按天",
+    subEvent:      "按事件",
+    resetView:     "⤢ 重置视图",
+    resetViewTooltip: "重置视图到全部锚点",
+    hideEdgeTransport: "隐藏头尾大交通",
+    emptyList:     "还没有事件，去表单添加",
+    transportFromTag: "(出发)",
+    transportToTag:   "(到达)",
+    dateUnfilled:  "未填日期",
+    locationUnanchored: "未锚定",
+    transportFallbackToast: "自驾路线服务暂不可用，已用直线距离代替",
+  },
+
+  io: {
+    exportLabel:   "📤 导出",
+    exportTooltip: "导出当前 Trip 为 JSON 文件",
+    exportEmpty:   "还没有事件可导出，先在表单里加一条",
+    importLabel:   "导入 JSON",
+    importHintReplace: "替换当前数据",
+    sampleLabel:   "加载示例",
+    sampleHintReplace: "替换当前数据",
+    resetLabel:    "清空所有事件",
+    confirmReset:  "确认清空当前 Trip 的所有事件？标题保留。",
+    confirmImportReplace: (n) => `导入会替换当前 ${n} 个事件，确认继续？`,
+    importDoneOk:  (n) => `导入完成 · ${n} 个事件`,
+    importDoneWithSkip: (ok, skip) => `导入完成 · ${ok} 个事件；${skip} 个跳过（type 不识别）`,
+    importParseFailed: (msg) => `导入失败：JSON 解析错误（${msg || "格式不正确"}）`,
+    importReadFailed: "导入失败：无法读取文件",
+    importNotObject: "导入失败：JSON 顶层不是对象",
+    importNoEvents:  "导入失败：缺少 events 数组",
+    importEmpty:     "导入失败：没有可识别的事件",
+  },
+
+  geo: {
+    modalTitle:        "选择地点",
+    searchPlaceholder: "输入地点名；回车搜索 OSM",
+    searchButton:      "🔍 搜索",
+    searchTooltip:     "按名字搜索 OSM（回车也行）",
+    searching:         "搜索中…",
+    candidatesEmpty:   "输入关键词开始搜索",
+    candidatesHint:    "搜不到？直接在地图上<strong>点击</strong>或<strong>拖动针</strong>手动打点，名字以输入框为准。",
+    coordEmpty:        "未锚定",
+    clearAnchor:       "清空锚定",
+    confirmAnchor:     "确认锚定",
+    autoAnchorPartialFail: (failed) => `自动锚定 ${failed} 项失败，可在卡片中手动打点`,
+    autoAnchorPartialMiss: (ok, total) => `自动锚定完成 · ${ok} / ${total}，其余 OSM 没找到`,
+    osmSearchFailed:   (msg) => `OSM 搜索失败：${msg || "网络异常"}。可在地图上手动打点。`,
+  },
+};

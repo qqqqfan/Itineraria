@@ -92,7 +92,7 @@ export function renderEventList(state) {
   if (undatedGroup.length) {
     const divider = document.createElement("div");
     divider.className = "list-divider";
-    divider.textContent = "以下未填日期，拖拽调整顺序";
+    divider.textContent = "以下未填日期，按拖动顺序排列";
     container.appendChild(divider);
 
     const undatedList = document.createElement("div");
@@ -133,21 +133,16 @@ function bindSortable(state, container) {
 function renderEmptyOnboarding() {
   return `
     <div class="onboarding">
-      <div class="onboarding__title">从一张行程开始</div>
-      <div class="onboarding__lead">把每一天要做的事变成一张卡片。地图里点出地点，预览自动连起来。</div>
+      <div class="onboarding__title">从一张事件卡片开始</div>
+      <div class="onboarding__lead">把每一天要做的事拆成一张卡片。地图里点出地点，预览自动连起来。</div>
       <ol class="onboarding__steps">
-        <li><strong>加一张卡</strong>：点下方 <span class="onboarding__plus">+</span>，选类型（酒店 / 游览 / 餐饮 / 活动 / 交通）。</li>
-        <li><strong>锚定地点</strong>：点"地点"按钮 → 输入名字 → 回车搜索 OSM；找不到就在地图上点击/拖针。</li>
-        <li><strong>填日期可选</strong>：填了就按日期排序；不填就在底部按你拖动的顺序排列。</li>
+        <li><strong>添加事件</strong>：点下方 <span class="onboarding__plus">+</span>，选类型（酒店 / 游览 / 餐饮 / 活动 / 交通）。</li>
+        <li><strong>锚定地点</strong>：点「地点」按钮 → 输入名字 → 回车搜索 OSM；找不到就在地图上点击或拖针。</li>
+        <li><strong>填日期可选</strong>：填了就按日期排序；不填就在底部按拖动顺序排列。</li>
       </ol>
-      <div class="onboarding__legend">
-        <span class="onboarding__chip"><span class="onboarding__dot onboarding__dot--ok">✅</span>OSM 精确匹配</span>
-        <span class="onboarding__chip"><span class="onboarding__dot onboarding__dot--mid">🟡</span>手动打点</span>
-        <span class="onboarding__chip"><span class="onboarding__dot onboarding__dot--no">❌</span>未锚定</span>
-      </div>
       <div class="onboarding__cta">
-        <button class="primary-button" data-onboard-action="add">+ 添加第一张卡</button>
-        <button class="tiny-button" data-onboard-action="sample">看个示例行程</button>
+        <button class="primary-button" data-onboard-action="add">+ 添加第一个事件</button>
+        <button class="tiny-button" data-onboard-action="sample">加载示例</button>
       </div>
     </div>
   `;
@@ -171,21 +166,30 @@ function bindEmptyOnboarding(state, container) {
 }
 
 export function renderEventStatus(state) {
+  // 同时给"导出"按钮做启用门控：无事件可导出时禁用
+  const exportBtn = document.querySelector("[data-action='export-json']");
+  if (exportBtn) {
+    const enabled = !!state.activeTripId && state.events.length > 0;
+    exportBtn.disabled = !enabled;
+    exportBtn.classList.toggle("is-disabled", !enabled);
+  }
   const el = document.getElementById("event-status");
   if (!el) return;
   const s = analyzeEvents(state);
-  const parts = [`<span class="event-status__count">共 ${s.total} 张</span>`];
+  const parts = [`<span class="event-status__count">共 ${s.total} 个</span>`];
   if (s.total === 0) {
     el.innerHTML = parts.join("");
     return;
   }
   const issues = [];
-  if (s.missingLocation) issues.push(`${s.missingLocation} 缺地点`);
-  if (s.missingTransportMode) issues.push(`${s.missingTransportMode} 缺交通方式`);
+  if (s.missingLocation) issues.push(`${s.missingLocation} 个缺地点`);
+  if (s.missingTransportMode) issues.push(`${s.missingTransportMode} 个缺交通方式`);
   if (issues.length) {
     issues.forEach((t) => parts.push(`<span class="event-status__issue">⚠ ${escapeHtml(t)}</span>`));
   } else {
     parts.push(`<span class="event-status__issue event-status__issue--ok">✓ 全部就绪</span>`);
   }
+  // 状态文案：缺地点/缺交通方式 走 events.js analyzeEvents；按 voice.md
+  // 规则——数据维度用「个」，前后文已指代事件可省略名词（"5 个"/"3 个缺地点"）。
   el.innerHTML = parts.join("");
 }

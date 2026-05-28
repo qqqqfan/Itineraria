@@ -180,7 +180,7 @@ function renderCardHeader(state, evt, expanded) {
   removeBtn.innerHTML = "✕";
   removeBtn.addEventListener("click", (e) => {
     e.stopPropagation();
-    if (!window.confirm("确认删除这张事件？")) return;
+    if (!window.confirm("确认删除这个事件？此操作不可撤销。")) return;
     mutate(state, (s) => {
       s.events = s.events.filter((x) => x.id !== evt.id);
       s.ui.expandedIds.delete(evt.id);

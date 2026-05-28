@@ -1,3 +1,9 @@
+/* 反 FOUC：bootstrap.js 加载完之前,把 main 区压住,
+   避免按 HTML 默认状态(library 顶栏 + 空 main)闪一帧.
+   bootstrap 末尾会移除 data-booting,做一次 fade-in. */
+html[data-booting] .studio-main { visibility: hidden; }
+html[data-booting] .topbar { visibility: hidden; }
+
 :root {
   --bg: #f4eee1;
   --paper: rgba(255, 251, 244, 0.92);
@@ -202,6 +208,10 @@ button {
 
 .mode-section[data-mode-section="preview"].is-active {
   height: max(780px, calc(100vh - 156px));
+}
+
+.mode-section[data-mode-section="library"].is-active {
+  min-height: max(420px, calc(100vh - 156px));
 }
 
 .panel--events {
@@ -1838,3 +1848,424 @@ button {
   from { opacity: 1; transform: translateY(0); }
   to   { opacity: 0; transform: translateY(-6px); }
 }
+
+/* ---------- Topbar 三视图（library / trip / shared） ----------
+ * library  父层(仅品牌名)
+ * trip     工作台(面包屑+标题+模式 nav+分享)
+ * shared   只读查看条(从分享链接进来)
+ */
+
+/* library 视图:只显示 library-only */
+.topbar[data-topbar-view="library"] [data-topbar-region="trip-only"],
+.topbar[data-topbar-view="library"] [data-topbar-region="shared-only"] {
+  display: none !important;
+}
+/* trip 视图:隐藏 library-only / shared-only */
+.topbar[data-topbar-view="trip"] [data-topbar-region="library-only"],
+.topbar[data-topbar-view="trip"] [data-topbar-region="shared-only"] {
+  display: none !important;
+}
+/* shared 视图:只显示 shared-only */
+.topbar[data-topbar-view="shared"] [data-topbar-region="library-only"],
+.topbar[data-topbar-view="shared"] [data-topbar-region="trip-only"] {
+  display: none !important;
+}
+
+/* shared 顶栏条:查看模式 tag + 标题 + 复制按钮 */
+.topbar__shared {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+.topbar__shared-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(143, 108, 48, 0.14);
+  border: 1px solid rgba(143, 108, 48, 0.28);
+  color: #6b4d1e;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.topbar__shared-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: "Iowan Old Style", "Times New Roman", serif;
+  font-size: 1.4rem;
+  line-height: 1.1;
+  color: var(--ink);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.topbar__shared-adopt {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  font-size: 0.86rem;
+}
+.topbar__shared-leave {
+  flex-shrink: 0;
+}
+
+/* topbar 上的 🔗 分享按钮 —— 跟在 mode-nav 后,不抢眼 */
+.topbar__share-btn {
+  flex-shrink: 0;
+}
+
+/* 品牌名（library 视图唯一保留的元素） */
+.topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+.topbar__brand-mark {
+  font-family: "Iowan Old Style", "Times New Roman", serif;
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+
+/* 面包屑：返回到作品仓库 */
+.topbar__breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--muted);
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+.topbar__breadcrumb:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* ---------- 标题区 + 自动保存提示 ---------- */
+.topbar__title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* "已自动保存" 极轻量提示，几乎与背景平齐，仅在保存瞬间脉一下 */
+.topbar__autosave-hint {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  flex-shrink: 0;
+  opacity: 0.6;
+  transition: opacity 200ms ease, color 200ms ease;
+}
+.topbar__autosave-hint.is-saving {
+  opacity: 1;
+  color: var(--gold);
+}
+.topbar__autosave-hint.is-saved {
+  opacity: 0.6;
+  color: var(--muted);
+}
+
+/* tiny-button disabled */
+.tiny-button.is-disabled,
+.tiny-button[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* tiny-button 视觉分级：
+ *   --primary  —— 工作台里唯一显眼的对外动作（导出 JSON）
+ *   --ghost    —— 极轻量；溢出菜单触发器、装饰性按钮
+ */
+.tiny-button.tiny-button--primary {
+  color: var(--ink);
+  border-color: rgba(143, 108, 48, 0.45);
+  background: rgba(255, 250, 235, 0.92);
+  font-weight: 500;
+}
+.tiny-button.tiny-button--primary:hover:not([disabled]) {
+  border-color: var(--gold);
+  background: rgba(255, 247, 226, 1);
+}
+.tiny-button.tiny-button--ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+  padding: 4px 9px;
+}
+.tiny-button.tiny-button--ghost:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--ink);
+}
+
+/* ---------- 溢出菜单 ⋯ ---------- */
+.overflow-menu {
+  position: relative;
+  display: inline-block;
+}
+.overflow-menu__trigger {
+  font-size: 1rem;
+  line-height: 1;
+  letter-spacing: 0.1em;
+}
+.overflow-menu.is-open .overflow-menu__trigger {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--ink);
+}
+.overflow-menu__panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  min-width: 220px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 251, 244, 0.98);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 30px rgba(50, 35, 16, 0.14);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+/* 关键：自定义 display:flex 会覆盖 UA 的 [hidden]{display:none}，
+ * 必须用更高特异性的选择器把 hidden 态拉回 none。 */
+.overflow-menu__panel[hidden] {
+  display: none;
+}
+.overflow-menu__item {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  border-radius: 8px;
+  color: var(--ink);
+  font-size: 0.85rem;
+}
+.overflow-menu__item:hover {
+  background: rgba(143, 108, 48, 0.08);
+}
+.overflow-menu__icon {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+.overflow-menu__label {
+  letter-spacing: 0.01em;
+}
+.overflow-menu__hint {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+.overflow-menu__sep {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--line);
+}
+.overflow-menu__item--danger {
+  color: var(--bad);
+}
+.overflow-menu__item--danger:hover {
+  background: rgba(141, 55, 55, 0.08);
+}
+
+/* ---------- Library mode ---------- */
+.panel--library {
+  padding: 18px 22px 24px;
+}
+.library__list {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.library__empty {
+  padding: 36px 18px;
+  text-align: center;
+  color: var(--muted);
+  font-style: italic;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.4);
+}
+.library__row {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  padding: 0;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.library__row:hover {
+  border-color: var(--line-strong);
+  box-shadow: 0 4px 14px rgba(50, 35, 16, 0.06);
+}
+.library__row.is-active {
+  border-color: var(--gold);
+  background: rgba(255, 250, 240, 0.92);
+}
+.library__row-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 14px 16px;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+.library__row-main:hover {
+  background: rgba(143, 108, 48, 0.05);
+}
+.library__title {
+  font-family: "Iowan Old Style", "Times New Roman", serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0.01em;
+}
+.library__title--empty {
+  color: var(--muted);
+  font-style: italic;
+  font-weight: 400;
+}
+.library__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+.library__row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  background: rgba(0, 0, 0, 0.02);
+  border-left: 1px solid var(--line);
+}
+.library__danger:hover {
+  color: var(--bad);
+  border-color: var(--bad);
+}
+
+/* ---------- Share modal (v0.2) ---------- */
+.share-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 110;
+}
+.share-modal.is-open { display: block; }
+
+.share-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 16, 12, 0.42);
+  backdrop-filter: blur(2px);
+}
+
+.share-modal__panel {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(560px, calc(100vw - 32px));
+  background: var(--paper-strong);
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 30px 80px rgba(20, 16, 12, 0.3);
+  overflow: hidden;
+}
+
+.share-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.share-modal__title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-family: "Iowan Old Style", "Times New Roman", serif;
+}
+
+.share-modal__body {
+  padding: 18px 20px 20px;
+  display: grid;
+  gap: 12px;
+}
+.share-modal__lead {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+.share-modal__url-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.share-modal__url {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.92);
+  font-family: "SF Mono", "Menlo", monospace;
+  font-size: 0.78rem;
+  color: var(--ink);
+}
+.share-modal__url:focus {
+  outline: none;
+  border-color: rgba(143, 108, 48, 0.55);
+  box-shadow: 0 0 0 3px rgba(143, 108, 48, 0.12);
+}
+.share-modal__meta {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.share-modal__ok { color: var(--ok); }
+.share-modal__warn { color: var(--warn); }
+.share-modal__hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  padding-top: 4px;
+  border-top: 1px dashed var(--line);
+}
+

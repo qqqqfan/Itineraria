@@ -47,7 +47,7 @@ export function initPreviewBindings(state) {
 
 export function renderPreviewHeader(state) {
   const t = document.getElementById("preview-trip-title");
-  if (t) t.textContent = state.trip.title || "Preview";
+  if (t) t.textContent = state.trip.title || "未命名 Trip";
 }
 
 export function renderPreview(state) {
@@ -74,7 +74,8 @@ export function renderPreview(state) {
     pane.classList.toggle("is-active", pane.dataset.pane === state.previewView.tab);
   });
 
-  if (state.activeMode !== "preview") return;
+  // shared 模式复用同一渲染引擎，所以也放行
+  if (state.activeMode !== "preview" && state.activeMode !== "shared") return;
 
   if (state.previewView.tab === "map") {
     renderPreviewMap(state);
@@ -267,13 +268,17 @@ export function toggleTransportRoute(state, evt) {
     if (cached) {
       drawDrivingRoute(state, cached.coords);
     } else {
+      // 跨 trip 守卫：fetch 期间若切了 trip，generation 会变；resolve 时丢弃
+      const myGen = state.autoAnchor.generation;
       fetchOSRMRoute(a, b)
         .then((result) => {
+          if (state.autoAnchor.generation !== myGen) return;
           state.preview.transportCache.set(evt.id, result);
           if (state.preview.activeTransportId === evt.id) drawDrivingRoute(state, result.coords);
           renderAxis(state, sortedEvents(state), state.previewView.sub);
         })
         .catch((err) => {
+          if (state.autoAnchor.generation !== myGen) return;
           console.warn("OSRM 失败，回退直线", err);
           toast.warn("自驾路线服务暂不可用，已用直线距离代替");
           drawStraightLine(state, a, b);

@@ -79,6 +79,8 @@ export async function startAutoAnchor(state, hooks) {
   if (state.autoAnchor.running) return;
   const tasks = collectUnanchoredTasks(state);
   if (!tasks.length) return;
+  // 跨 trip 取消令牌：切 trip 时 generation++，此处快照后每步对照
+  const myGen = state.autoAnchor.generation;
   state.autoAnchor.running = true;
   showAutoAnchorStatus(`🌍 自动锚定中 0 / ${tasks.length}…`);
 
@@ -86,6 +88,8 @@ export async function startAutoAnchor(state, hooks) {
   let done = 0, ok = 0, failed = 0;
 
   for (const t of tasks) {
+    // 切 trip 检查（进入循环前）
+    if (state.autoAnchor.generation !== myGen) return;
     // 任务期间用户可能已手动锚定/删除该 event，先校验目标仍存在且仍是 none
     const evt = state.events.find((e) => e.id === t.eventId);
     if (!evt || !evt[t.field] || evt[t.field].status !== "none" || !evt[t.field].label) {
@@ -98,9 +102,11 @@ export async function startAutoAnchor(state, hooks) {
       let result = cache.get(t.label);
       if (result === undefined) {
         result = await geocodeOne(t.label);
+        if (state.autoAnchor.generation !== myGen) return; // fetch 后切 trip
         cache.set(t.label, result);
         // 仅在真正发了请求时节流
         await sleep(1100);
+        if (state.autoAnchor.generation !== myGen) return; // sleep 后切 trip
       }
       if (result) {
         evt[t.field] = {
@@ -121,13 +127,14 @@ export async function startAutoAnchor(state, hooks) {
     showAutoAnchorStatus(`🌍 自动锚定中 ${done} / ${tasks.length}…`);
   }
 
+  if (state.autoAnchor.generation !== myGen) return;
   state.autoAnchor.running = false;
   showAutoAnchorStatus(`✅ 自动锚定完成 ${ok} / ${tasks.length}`, true);
   if (failed > 0) {
-    toast.warn(`自动锚定有 ${failed} 项失败，可在卡片中手动打点`);
+    toast.warn(`自动锚定 ${failed} 项失败，可在卡片中手动打点`);
   } else if (ok < tasks.length) {
     // 没失败但也没全锚上 → 多半是 OSM 没找着
-    toast.info(`自动锚定完成：${ok} / ${tasks.length} 成功，其余 OSM 没找到`);
+    toast.info(`自动锚定完成 · ${ok} / ${tasks.length}，其余 OSM 没找到`);
   }
 }
 

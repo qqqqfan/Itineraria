@@ -11,9 +11,10 @@
 import { schedulePersist } from "./storage.js";
 
 let renderers = {
-  card: null,    // (state, eventId) => void
-  list: null,    // (state) => void
-  preview: null, // (state) => void
+  card: null,         // (state, eventId) => void
+  list: null,         // (state) => void
+  preview: null,      // (state) => void
+  autosaveHint: null, // () => void  —— 顶栏 transient 自动保存反馈
 };
 
 export function setRenderers(r) {
@@ -33,6 +34,7 @@ export function mutate(state, fn, opts = {}) {
 
   if (opts.persist !== false) {
     schedulePersist(state);
+    if (renderers.autosaveHint) renderers.autosaveHint();
   }
 
   switch (opts.rerender) {

@@ -7,43 +7,134 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="./styles.css" />
+    <!-- 反 FOUC：在 bootstrap.js 接管之前,根据 hash 把 body 标成 booting,
+         CSS 借此把所有 mode-section 隐藏,避免先闪一下表单 -->
+    <script>
+      (function () {
+        try {
+          document.documentElement.setAttribute("data-booting", "1");
+          var hash = window.location.hash || "";
+          var search = window.location.search || "";
+          if (hash.indexOf("#t=") === 0 || /[?&]s=[A-Za-z0-9]{4,16}(?:&|$)/.test(search)) {
+            document.documentElement.setAttribute("data-shared-boot", "1");
+          }
+        } catch (_) {}
+      })();
+    </script>
   </head>
   <body>
     <div class="studio-shell">
-      <header class="topbar">
+      <header class="topbar" data-topbar-view="library">
         <div class="topbar__row">
-          <input
-            class="topbar__title-input"
-            type="text"
-            data-trip-field="title"
-            placeholder="给这场旅行起个名字…"
-            aria-label="旅行名称"
-          />
-          <nav class="mode-nav" aria-label="studio navigation">
+          <!-- Library 视图：仅品牌名（左对齐） -->
+          <div class="topbar__brand" data-topbar-region="library-only">
+            <span class="topbar__brand-mark">TripStudio</span>
+          </div>
+
+          <!-- Trip 视图：面包屑 → 标题 → 状态徽章 → 子模式 → 动作 -->
+          <button
+            class="topbar__breadcrumb"
+            type="button"
+            data-action="back-to-library"
+            data-topbar-region="trip-only"
+            title="返回 Trip 列表"
+          >← 我的 Trip</button>
+          <div class="topbar__title-wrap" data-topbar-region="trip-only">
+            <input
+              class="topbar__title-input"
+              type="text"
+              data-trip-field="title"
+              placeholder="Trip 名称"
+              aria-label="Trip 名称"
+            />
+            <span class="topbar__autosave-hint" data-autosave-hint title="改动自动保存到本机">已自动保存</span>
+          </div>
+          <nav class="mode-nav" aria-label="studio navigation" data-topbar-region="trip-only">
             <button class="mode-nav__button is-active" data-mode-button="form">表单</button>
             <button class="mode-nav__button" data-mode-button="preview">预览</button>
           </nav>
-          <div class="topbar__actions">
-            <button class="tiny-button" data-action="load-sample">示例</button>
-            <button class="tiny-button" data-action="reset-form">清空</button>
+          <button
+            class="tiny-button tiny-button--primary topbar__share-btn"
+            type="button"
+            data-action="open-share"
+            data-topbar-region="trip-only"
+            title="生成可发给朋友的分享链接"
+          >🔗 分享</button>
+
+          <!-- Shared 视图：查看模式条 + 复制到我的 Trip -->
+          <div class="topbar__shared" data-topbar-region="shared-only">
+            <span class="topbar__shared-tag">查看模式</span>
+            <span class="topbar__shared-title" data-shared-title>未命名 Trip</span>
+            <button
+              class="tiny-button topbar__shared-leave"
+              type="button"
+              data-action="leave-shared"
+              title="退出查看,回到我的 Trip"
+            >退出查看</button>
+            <button
+              class="primary-button topbar__shared-adopt"
+              type="button"
+              data-action="adopt-shared"
+              title="把这个 Trip 复制到我的 Library"
+            >复制到我的 Trip</button>
           </div>
         </div>
       </header>
 
       <main class="studio-main">
-        <section class="mode-section is-active" data-mode-section="form">
+        <section class="mode-section" data-mode-section="library">
+          <article class="panel panel--library">
+            <div class="panel__header">
+              <h2 class="panel__title">我的 Trip</h2>
+              <div class="panel__header-right">
+                <button class="primary-button" data-action="new-trip">+ 新建 Trip</button>
+              </div>
+            </div>
+            <ul class="library__list" data-library-list></ul>
+          </article>
+        </section>
+
+        <section class="mode-section" data-mode-section="form">
           <article class="panel panel--events">
             <div class="panel__header panel__header--events">
               <h2 class="panel__title">事件</h2>
               <div class="panel__header-right">
-                <span class="event-status" id="event-status" aria-live="polite">共 0 张</span>
-                <button class="tiny-button" data-action="export-json" title="导出当前行程为 JSON 文件">📤 导出</button>
-                <button class="tiny-button" data-action="import-json" title="从 JSON 文件导入行程（会替换当前数据）">📥 导入</button>
+                <span class="event-status" id="event-status" aria-live="polite">共 0 个</span>
+                <button class="tiny-button tiny-button--primary" data-action="export-json" title="导出当前 Trip 为 JSON 文件">📤 导出</button>
+                <div class="overflow-menu" data-overflow-menu>
+                  <button
+                    class="tiny-button tiny-button--ghost overflow-menu__trigger"
+                    type="button"
+                    data-overflow-trigger
+                    aria-haspopup="menu"
+                    aria-expanded="false"
+                    aria-label="更多操作"
+                    title="更多"
+                  >⋯</button>
+                  <div class="overflow-menu__panel" data-overflow-panel role="menu" hidden>
+                    <button class="overflow-menu__item" type="button" role="menuitem" data-action="import-json">
+                      <span class="overflow-menu__icon">📥</span>
+                      <span class="overflow-menu__label">导入 JSON</span>
+                      <span class="overflow-menu__hint">替换当前数据</span>
+                    </button>
+                    <button class="overflow-menu__item" type="button" role="menuitem" data-action="load-sample">
+                      <span class="overflow-menu__icon">🌱</span>
+                      <span class="overflow-menu__label">加载示例</span>
+                      <span class="overflow-menu__hint">替换当前数据</span>
+                    </button>
+                    <div class="overflow-menu__sep"></div>
+                    <button class="overflow-menu__item overflow-menu__item--danger" type="button" role="menuitem" data-action="reset-form">
+                      <span class="overflow-menu__icon">🗑</span>
+                      <span class="overflow-menu__label">清空所有事件</span>
+                      <span class="overflow-menu__hint">标题保留</span>
+                    </button>
+                  </div>
+                </div>
                 <input type="file" id="import-json-input" accept="application/json,.json" hidden />
               </div>
             </div>
             <div class="event-list" id="event-list"></div>
-            <button class="event-adder" data-action="add-event" aria-label="添加事件卡片">
+            <button class="event-adder" data-action="add-event" aria-label="添加事件">
               <span class="event-adder__plus">+</span>
             </button>
           </article>
@@ -52,7 +143,7 @@
         <section class="mode-section" data-mode-section="preview">
           <article class="panel preview-panel">
             <header class="preview-header">
-              <h2 class="preview-title" id="preview-trip-title">Preview</h2>
+              <h2 class="preview-title" id="preview-trip-title">未命名 Trip</h2>
               <div class="preview-tabs" data-tab-group="primary">
                 <button class="preview-tab is-active" data-tab="map">🗺️ 地图</button>
                 <button class="preview-tab" data-tab="list">📋 列表</button>
@@ -97,13 +188,13 @@
             type="text"
             id="location-search-input"
             class="location-search-input"
-            placeholder="给地点起个名字；回车搜索 OSM"
+            placeholder="输入地点名；回车搜索 OSM"
           />
-          <button class="tiny-button location-search-btn" data-action="run-location-search" title="按名字搜索 OSM（回车也行）">🔍 搜索</button>
+          <button class="tiny-button location-search-btn" data-action="run-location-search" title="按名字搜索 OSM（回车亦可）">🔍 搜索</button>
           <span class="location-search-spinner" id="location-search-spinner" hidden>搜索中…</span>
         </div>
         <p class="location-modal__hint">
-          搜不到？直接在地图上<strong>点击</strong>或<strong>拖动针</strong>手动打点，名字以输入框为准。
+          搜不到？直接在地图上<strong>点击</strong>或<strong>拖动针</strong>手动打点；名字以输入框为准。
         </p>
         <div class="location-modal__body">
           <div class="location-map" id="location-map"></div>
@@ -121,10 +212,42 @@
       </div>
     </div>
 
+    <div class="share-modal" id="share-modal" aria-hidden="true">
+      <div class="share-modal__backdrop" data-action="close-share"></div>
+      <div class="share-modal__panel" role="dialog" aria-label="分享 Trip">
+        <header class="share-modal__header">
+          <h3 class="share-modal__title">分享这个 Trip</h3>
+          <button class="icon-button" data-action="close-share" aria-label="关闭">✕</button>
+        </header>
+        <div class="share-modal__body">
+          <p class="share-modal__lead">
+            复制下面的链接发给朋友。打开链接的人可以查看这趟 Trip 的预览,但不会改到本机的版本。
+          </p>
+          <div class="share-modal__url-row">
+            <input
+              type="text"
+              class="share-modal__url"
+              id="share-url-input"
+              readonly
+              aria-label="分享链接"
+            />
+            <button class="primary-button" data-action="copy-share-url">复制</button>
+          </div>
+          <div class="share-modal__meta" id="share-modal-meta">
+            <!-- 动态填:链接长度 / 适配提示 -->
+          </div>
+          <p class="share-modal__hint">
+            链接是 Trip 的只读快照,不需要账号,90 天后自动失效。Trip 改动后需要重新生成链接。
+          </p>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
     <script type="module" src="./src/bootstrap.js"></script>
   </body>
 </html>

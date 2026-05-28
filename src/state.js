@@ -1,6 +1,12 @@
 /* 全局 state 创建 */
 
+// v0.1 旧键（保留作首发版本备份）
 export const STORAGE_KEY = "plan-your-tour-studio-v1.0";
+// v1.0 多 trip 命名空间：索引 + 每 trip 一键
+export const STORAGE_PREFIX = "plan-your-tour-studio-v1.0";
+export const INDEX_KEY = `${STORAGE_PREFIX}:index`;
+export function tripKey(id) { return `${STORAGE_PREFIX}:trip:${id}`; }
+
 export const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
 // OSM Nominatim 公共服务的"identifying yourself"政策：浏览器无法设 User-Agent，
 // 改用 email= 查询参数声明联系人。如有需要请改成你的真实邮箱。
@@ -13,7 +19,17 @@ export function createState() {
   return {
     storageKey: STORAGE_KEY,
     activeMode: "form",
-    trip: { title: "" },
+    // v1.0 多 trip
+    activeTripId: null,
+    tripIndex: [], // IndexEntry[] 镜像，library 模式渲染用
+    trip: {
+      id: null,
+      title: "",
+      // v1.0 不存在"发布"概念（v1.1+ 才有明信片导出 = 真正的发布）。
+      // 这里只保留身份与时间戳。
+      createdAt: null,
+      updatedAt: null,
+    },
     events: [],
     // hideEdgeTransport: 持久化的"隐藏头尾大交通"开关
     previewView: { tab: "map", sub: "day", hideEdgeTransport: false },
@@ -46,9 +62,11 @@ export function createState() {
       activeTransportId: null,
       transportCache: new Map(), // key: eventId, value: latlng[]
     },
-    // 自动锚定运行状态（之前是模块级 let，挪进 state 集中管理）
+    // 自动锚定运行状态：generation 用作跨 trip 取消令牌
+    // 切 trip 时 ++generation；in-flight 任务发现 mismatch 立即返回，避免串写
     autoAnchor: {
       running: false,
+      generation: 0,
     },
   };
 }

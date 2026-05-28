@@ -434,7 +434,7 @@ function runSearch(state, query) {
     .catch((err) => {
       if (err && err.name === "AbortError") return; // 主动取消，不打日志
       console.warn("OSM 搜索失败", err);
-      toast.error(`OSM 搜索失败：${err && err.message ? err.message : "网络异常"}。可在地图上手动打点。`);
+      toast.error(`OSM 搜索失败：${err && err.message ? err.message : "网络异常"} · 可在地图上手动打点`);
       // 失败时也把候选区切到"空态"提示，引导手动打点
       renderCandidates(state, []);
     })
