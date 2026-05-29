@@ -2,7 +2,7 @@
 
 > 把一段还没发生的旅行**先走一遍** —— 录入行程、锚定地图、一键分享给朋友。
 
-**线上体验**:<https://tripstudio-d8g4493cjc152b482-1437904407.tcloudbaseapp.com/>
+**直接用**:<https://tripstudio-d8g4493cjc152b482-1437904407.tcloudbaseapp.com/>
 
 不需要注册。打开就能用。
 
@@ -23,24 +23,6 @@
 
 ---
 
-## 自己跑一份
-
-无构建。本地起 HTTP 服务就行:
-
-```bash
-git clone https://github.com/qqqqfan/Itineraria.git
-cd Itineraria
-python3 -m http.server 8000
-open http://localhost:8000/
-```
-
-不能用 `file://` 直接双击 `index.html` —— ES module 会被浏览器拦。
-
-> ⚠️ 短链功能(`?s=xxx`)依赖一个 CloudBase 云函数后端。本地直接 clone 跑也能用,但点"分享"会自动回退到长链(`#t=xxx`,把数据塞 URL 里,3-5KB)。  
-> 如果你想自己也搭一份带短链的,见下面 [自己部署带后端的版本](#自己部署带后端的版本)。
-
----
-
 ## 项目结构
 
 ```
@@ -51,8 +33,8 @@ src/                    模块化前端代码(无构建,原生 ES module)
   state.js              全局 state
   storage.js            localStorage 多 trip 存储 + v0.1 迁移
   mutate.js             数据流入口(写 state + 触发渲染 + 持久化)
-  share.js              v0.2 长链编解码(LZString → URL fragment)
-  share-api.js          v0.2+ 短链 HTTP 层(POST/GET CloudBase 后端)
+  share.js              长链编解码(LZString → URL fragment)
+  share-api.js          短链 HTTP 层(POST/GET CloudBase 后端)
   geo/nominatim.js      OSM 地理编码 + 自动锚定
   ui/                   各分区 UI(topbar / library / event-list / location-modal / preview-map / share-modal)
 docs/
@@ -62,13 +44,28 @@ docs/
 
 ---
 
-## 自己部署带后端的版本
+## 给开发者:本地跑
 
-如果你想 fork 这个项目自己跑一个能短链分享的版本:
+无构建。clone 下来起个 HTTP 服务就行:
 
-### 1. 准备一个云函数后端
+```bash
+git clone https://github.com/qqqqfan/Itineraria.git
+cd Itineraria
+python3 -m http.server 8000
+open http://localhost:8000/
+```
 
-任何能跑 Node.js + 暴露 HTTP / 有简单文档库的服务都行。我用的是腾讯云 CloudBase(国内访问稳),也可以是:
+不能用 `file://` 直接双击 `index.html` —— ES module 会被浏览器拦。
+
+> 短链功能(`?s=xxx`)依赖云函数后端,本地默认指向我个人部署的那个。如果你不想用我的后端,见下方"自己部署一份"。点"分享"时如果后端连不上,会自动回退到长链(`#t=xxx`,把数据塞 URL 里,3-5KB)。
+
+---
+
+## 自己部署一份
+
+### 1. 准备云函数后端
+
+任何能跑 Node.js + 暴露 HTTP + 有简单文档库的服务都行。我用的是腾讯云 CloudBase(国内访问稳),也可以是:
 
 - Vercel + Vercel KV
 - Cloudflare Workers + KV
@@ -91,7 +88,7 @@ const SHARE_API_BASE = "https://你的后端/share";
 
 ### 3. 部署静态站
 
-CloudBase 静态托管 / Vercel / Netlify / GitHub Pages 都行。注意 GitHub Pages 国内访问偶尔不稳。
+CloudBase 静态托管 / Vercel / Netlify / GitHub Pages 都行。GitHub Pages 国内访问偶尔不稳。
 
 ---
 
@@ -103,18 +100,6 @@ CloudBase 静态托管 / Vercel / Netlify / GitHub Pages 都行。注意 GitHub 
 - [LZ-String](https://github.com/pieroxy/lz-string) 1.5.0 — 长链压缩
 - [Nominatim](https://nominatim.org/) — OSM 地理编码(公共服务)
 - [OSRM](http://project-osrm.org/) — 自驾路径(公共服务)
-
----
-
-## 版本
-
-| 版本 | 状态 | 内容 |
-|------|------|------|
-| **v0.1.0** | 已冻结(tag) | 单 trip 录入 MVP |
-| **v1.0** | 当前 `v1.0-dev` 分支 | 多 trip 仓库、分享、CloudBase 短链 |
-| 未来 | 路线图 | 国内瓦片源切换、明信片渲染引擎、PDF 导出 |
-
-详见 [`PRD_v3.md`](./PRD_v3.md) 与 [`ROADMAP_v1.md`](./ROADMAP_v1.md)。
 
 ---
 
